@@ -5,7 +5,7 @@ local Window = Rayfield:CreateWindow({
    LoadingTitle = "กำลังเปิดระบบโดย AnusornGod...",
    LoadingSubtitle = "เมนูภาษาไทยสำหรับสายเกรียน",
    ConfigurationSaving = { Enabled = true, FolderName = "AnusornGodConfig" },
-   KeySystem = false,
+   KeySystem = true,
    KeySettings = {
       Title = "ระบบสมาชิก AnusornGod",
       Subtitle = "รหัสคือ: 1234",
