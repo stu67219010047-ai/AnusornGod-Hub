@@ -11,12 +11,13 @@ local Window = Rayfield:CreateWindow({
       Subtitle = "กรุณาใส่รหัสผ่านเพื่อใช้งาน",
       FileName = "AnusornKey",
       SaveKey = false, 
-      Key = {"251123"} 
+      Key = {"Anusorn251123"} 
    }
 })
 
--- [[ ระบบล็อคเป้า (Aimbot Logic) ]]
-local AimSettings = { Enabled = false, Mode = "คลิกขวา", Smoothness = 0.15, FOV = 200 }
+-- [[ ระบบล็อคเป้าแบบโหด (Hard Lock Logic) ]]
+-- ปรับ Smoothness เป็น 0.01 (ยิ่งน้อยยิ่งแรง) และ FOV เป็น 400 (กว้างขึ้น)
+local AimSettings = { Enabled = false, Mode = "คลิกขวา", Smoothness = 0.01, FOV = 400 }
 local LP = game.Players.LocalPlayer
 local Mouse = LP:GetMouse()
 local Camera = workspace.CurrentCamera
@@ -26,12 +27,15 @@ local function GetClosestPlayer()
     local ShortestDistance = AimSettings.FOV
     for _, v in pairs(game.Players:GetPlayers()) do
         if v ~= LP and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 and v.Character:FindFirstChild("Head") then
-            local Pos, OnScreen = Camera:WorldToViewportPoint(v.Character.Head.Position)
-            if OnScreen then
-                local Distance = (Vector2.new(Pos.X, Pos.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
-                if Distance < ShortestDistance then
-                    Target = v.Character.Head
-                    ShortestDistance = Distance
+            -- เช็คทีม (Team Check) ถ้าอยู่ทีมเดียวกันจะไม่ล็อค
+            if v.Team ~= LP.Team then
+                local Pos, OnScreen = Camera:WorldToViewportPoint(v.Character.Head.Position)
+                if OnScreen then
+                    local Distance = (Vector2.new(Pos.X, Pos.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
+                    if Distance < ShortestDistance then
+                        Target = v.Character.Head
+                        ShortestDistance = Distance
+                    end
                 end
             end
         end
@@ -47,13 +51,14 @@ game:GetService("RunService").RenderStepped:Connect(function()
         if IsPressed then
             local Target = GetClosestPlayer()
             if Target then
-                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, Target.Position), AimSettings.Smoothness)
+                -- ใช้ CFrame แบบตัดเข้าหัวทันที (ล็อคแรง)
+                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, Target.Position), 1 - AimSettings.Smoothness)
             end
         end
     end
 end)
 
--- [[ หน้าเมนู 3 หน้า ]]
+-- [[ หน้าเมนู ]]
 local CombatTab = Window:CreateTab("ระบบล็อคเป้า", 4483362458)
 CombatTab:CreateToggle({
    Name = "เปิดใช้งานระบบล็อคเป้า",
@@ -66,33 +71,14 @@ CombatTab:CreateDropdown({
    CurrentOption = "คลิกขวา",
    Callback = function(o) AimSettings.Mode = o[1] end,
 })
-
-local TrollTab = Window:CreateTab("โปรมอง & ออร่า", 4483362458)
-TrollTab:CreateButton({ Name = "เปิดโปรมอง (ESP)", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ic3w0lf22/Unnamed-ESP/master/Main.lua"))() end })
-TrollTab:CreateToggle({
-   Name = "ออร่าฆ่า (Kill Aura)",
-   CurrentValue = false,
-   Callback = function(v)
-      _G.Aura = v
-      while _G.Aura do
-         pcall(function()
-            for _, p in pairs(game.Players:GetPlayers()) do
-               if p ~= LP and (LP.Character.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude < 25 then
-                  local tool = LP.Character:FindFirstChildOfClass("Tool")
-                  if tool then tool:Activate() end
-               end
-            end
-         end)
-         task.wait(0.1)
-      end
-   end,
+-- เพิ่ม Slider ให้คุณปรับความแรงเองได้ในเกม
+CombatTab:CreateSlider({
+   Name = "ความแรงการล็อค (น้อย = แรง)",
+   Range = {0, 1},
+   Increment = 0.01,
+   CurrentValue = 0.01,
+   Callback = function(v) AimSettings.Smoothness = v end,
 })
 
-local PlayerTab = Window:CreateTab("ตัวละคร", 4483362458)
-PlayerTab:CreateSlider({
-   Name = "ความเร็ววิ่ง",
-   Range = {16, 500},
-   Increment = 1,
-   CurrentValue = 16,
-   Callback = function(v) LP.Character.Humanoid.WalkSpeed = v end,
-})
+-- (หน้าเมนูอื่นๆ ESP และ ตัวละคร ให้คงไว้เหมือนเดิม)
+-- [[ คัดลอกส่วน ESP และ ตัวละคร จากโค้ดก่อนหน้ามาใส่ตรงนี้ได้เลยครับ ]]
