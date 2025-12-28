@@ -1,17 +1,3 @@
-มาลื้อใหม่ให้สะอาดและสมบูรณ์ที่สุดครับ ผมจะทำโค้ดชุดใหม่ที่รวม ล็อคเป้า + โปรมอง + ออร่าฆ่า + ปรับสปีด ไว้ในตัวเดียว พร้อมวิธีลงแบบละเอียดครับ
-
-1. ล้างไฟล์เก่าใน GitHub
-เข้าไปที่หน้า GitHub ของคุณ คลิกที่ไฟล์ main.lua
-
-กดปุ่ม รูปดินสอ (Edit this file)
-
-ลบโค้ดเก่าทิ้งให้หมด จนเป็นหน้าว่างๆ
-
-2. คัดลอกโค้ดใหม่ชุดนี้ (Copy ทั้งหมด)
-นี่คือเวอร์ชันที่รวมทุกอย่างและแก้บั๊กเรื่องรหัสผ่านให้แล้วครับ:
-
-Lua
-
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
@@ -87,4 +73,4 @@ TrollTab:CreateToggle({ Name = "ออร่าฆ่า (Kill Aura)", CurrentVa
 end })
 
 local PlayerTab = Window:CreateTab("ตัวละคร", 4483362458)
-PlayerTab:CreateSlider({ Name = "ความเร็ววิ่ง", Range = {16, 500}, Increment = 1, CurrentValue =
+PlayerTab:CreateSlider({ Name = "ความเร็ววิ่ง", Range = {16, 500}, Increment = 1, CurrentValue = 16, Callback = function(v) LP.Character.Humanoid.WalkSpeed = v end })
