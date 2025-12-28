@@ -11,7 +11,7 @@ local Window = Rayfield:CreateWindow({
       Subtitle = "กรุณาใส่รหัสผ่านเพื่อใช้งาน",
       FileName = "AnusornKey",
       SaveKey = false, 
-      Key = {"112523"} 
+      Key = {"251123"} 
    }
 })
 
