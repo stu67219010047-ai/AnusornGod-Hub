@@ -3,7 +3,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "ANUSORNGOD HUB | SUPREME V4",
    LoadingTitle = "กำลังเปิดระบบโดย AnusornGod...",
-   LoadingSubtitle = "ยินดีต้อนรับ AnusornGod",
+   LoadingSubtitle = "ยินดีต้อนรับ AnusornGod (Admin Update)",
    ConfigurationSaving = { Enabled = true, FolderName = "AnusornGodConfig" },
    KeySystem = true,
    KeySettings = {
@@ -11,7 +11,7 @@ local Window = Rayfield:CreateWindow({
       Subtitle = "กรุณาใส่รหัสผ่านเพื่อใช้งาน",
       FileName = "AnusornKey",
       SaveKey = false, 
-      Key = {"250523"} 
+      Key = {"112523"} 
    }
 })
 
@@ -27,10 +27,9 @@ local function GetClosestEnemy()
     
     for _, v in pairs(game.Players:GetPlayers()) do
         if v ~= LP and v.Character and v.Character:FindFirstChild("Head") and v.Character:FindFirstChild("Humanoid") then
-            -- เช็คว่าตายหรือยัง
             if v.Character.Humanoid.Health <= 0 then continue end
             
-            -- [[ ระบบเช็คทีมแบบแม่นยำ ]]
+            -- ระบบเช็คทีมแบบเด็ดขาด
             local isTeammate = false
             if v.Team ~= nil and LP.Team ~= nil then
                 if v.Team == LP.Team then isTeammate = true end
@@ -61,14 +60,13 @@ game:GetService("RunService").RenderStepped:Connect(function()
         if IsPressed then
             local Target = GetClosestEnemy()
             if Target then
-                -- ล็อคเข้าหัวแบบรวดเร็ว
                 Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, Target.Position), 1 - AimSettings.Smoothness)
             end
         end
     end
 end)
 
--- [[ หน้าเมนู ]]
+-- [[ หน้าที่ 1: ระบบล็อคเป้า ]]
 local CombatTab = Window:CreateTab("ระบบต่อสู้", 4483362458)
 CombatTab:CreateToggle({
    Name = "เปิดใช้งานระบบล็อคเป้า",
@@ -82,9 +80,23 @@ CombatTab:CreateDropdown({
    Callback = function(o) AimSettings.Mode = o[1] end,
 })
 
+-- [[ หน้าที่ 2: โปรมอง & ออร่า ]]
 local TrollTab = Window:CreateTab("โปรมอง & ออร่า", 4483362458)
-TrollTab:CreateButton({ Name = "เปิดโปรมอง (ESP)", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ic3w0lf22/Unnamed-ESP/master/Main.lua"))() end })
+TrollTab:CreateButton({ 
+   Name = "เปิดโปรมอง (ESP)", 
+   Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ic3w0lf22/Unnamed-ESP/master/Main.lua"))() end 
+})
 
+-- [[ หน้าที่ 3: คำสั่งแอดมิน (Admin) ]]
+local AdminTab = Window:CreateTab("คำสั่งแอดมิน", 4483362458)
+AdminTab:CreateButton({
+   Name = "เปิดใช้งาน Infinite Yield (Admin)",
+   Callback = function()
+      loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+   end,
+})
+
+-- [[ หน้าที่ 4: ตัวละคร ]]
 local PlayerTab = Window:CreateTab("ตัวละคร", 4483362458)
 PlayerTab:CreateSlider({
    Name = "ความเร็ววิ่ง",
