@@ -3,7 +3,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "ANUSORNGOD HUB | SUPREME V4",
    LoadingTitle = "กำลังเปิดระบบโดย AnusornGod...",
-   LoadingSubtitle = "ยินดีต้อนรับ AnusornGod (Admin Update)",
+   LoadingSubtitle = "ยินดีต้อนรับ AnusornGod (Smooth Update)",
    ConfigurationSaving = { Enabled = true, FolderName = "AnusornGodConfig" },
    KeySystem = true,
    KeySettings = {
@@ -15,11 +15,25 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
--- [[ ระบบล็อคเป้า (Hard Lock & Team Check) ]]
-local AimSettings = { Enabled = false, Mode = "คลิกขวา", Smoothness = 0.01, FOV = 400 }
+-- [[ ตั้งค่าระบบล็อคเป้า ]]
+local AimSettings = { 
+    Enabled = false, 
+    Mode = "คลิกขวา", 
+    Smoothness = 0.5, -- ค่าเริ่มต้นความเนียน (0.1 = แรง, 1.0 = เนียนมาก)
+    FOV = 150, 
+    ShowFOV = true 
+}
+
 local LP = game.Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local Mouse = LP:GetMouse()
+
+-- [[ วงกลม FOV ]]
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 1
+FOVCircle.Color = Color3.fromRGB(255, 255, 255)
+FOVCircle.Transparency = 0.5
+FOVCircle.Visible = false
 
 local function GetClosestEnemy()
     local Target = nil
@@ -29,14 +43,7 @@ local function GetClosestEnemy()
         if v ~= LP and v.Character and v.Character:FindFirstChild("Head") and v.Character:FindFirstChild("Humanoid") then
             if v.Character.Humanoid.Health <= 0 then continue end
             
-            -- ระบบเช็คทีมแบบเด็ดขาด
-            local isTeammate = false
-            if v.Team ~= nil and LP.Team ~= nil then
-                if v.Team == LP.Team then isTeammate = true end
-            elseif v.TeamColor == LP.TeamColor then
-                isTeammate = true
-            end
-            
+            local isTeammate = (v.Team ~= nil and v.Team == LP.Team) or (v.TeamColor == LP.TeamColor)
             if not isTeammate then
                 local Pos, OnScreen = Camera:WorldToViewportPoint(v.Character.Head.Position)
                 if OnScreen then
@@ -52,7 +59,12 @@ local function GetClosestEnemy()
     return Target
 end
 
+-- [[ ระบบคำนวณการเคลื่อนที่ ]]
 game:GetService("RunService").RenderStepped:Connect(function()
+    FOVCircle.Visible = AimSettings.ShowFOV
+    FOVCircle.Radius = AimSettings.FOV
+    FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+
     if AimSettings.Enabled then
         local UIS = game:GetService("UserInputService")
         local IsPressed = (AimSettings.Mode == "คลิกขวา" and UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)) or (AimSettings.Mode == "กดยิง" and UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1))
@@ -60,47 +72,60 @@ game:GetService("RunService").RenderStepped:Connect(function()
         if IsPressed then
             local Target = GetClosestEnemy()
             if Target then
-                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, Target.Position), 1 - AimSettings.Smoothness)
+                -- ระบบ Smooth แบบเนียน (Lerp)
+                local TargetPos = Camera:WorldToScreenPoint(Target.Position)
+                local MousePos = Vector2.new(Mouse.X, Mouse.Y + 36)
+                local MoveTo = (Vector2.new(TargetPos.X, TargetPos.Y) - MousePos) * (1 - AimSettings.Smoothness)
+                
+                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, Target.Position), (1 - AimSettings.Smoothness) / 5)
             end
         end
     end
 end)
 
--- [[ หน้าที่ 1: ระบบล็อคเป้า ]]
+-- [[ หน้าเมนู: ระบบต่อสู้ ]]
 local CombatTab = Window:CreateTab("ระบบต่อสู้", 4483362458)
+
 CombatTab:CreateToggle({
    Name = "เปิดใช้งานระบบล็อคเป้า",
    CurrentValue = false,
    Callback = function(v) AimSettings.Enabled = v end,
 })
-CombatTab:CreateDropdown({
-   Name = "โหมดล็อค",
-   Options = {"คลิกขวา", "กดยิง"},
-   CurrentOption = "คลิกขวา",
-   Callback = function(o) AimSettings.Mode = o[1] end,
+
+CombatTab:CreateSlider({
+   Name = "ความเนียน (ยิ่งมากยิ่งเนียน)",
+   Range = {0, 0.95},
+   Increment = 0.05,
+   CurrentValue = 0.5,
+   Callback = function(v) AimSettings.Smoothness = v end,
 })
 
--- [[ หน้าที่ 2: โปรมอง & ออร่า ]]
-local TrollTab = Window:CreateTab("โปรมอง & ออร่า", 4483362458)
-TrollTab:CreateButton({ 
-   Name = "เปิดโปรมอง (ESP)", 
-   Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ic3w0lf22/Unnamed-ESP/master/Main.lua"))() end 
+CombatTab:CreateSlider({
+   Name = "ระยะล็อค (FOV)",
+   Range = {0, 800},
+   Increment = 10,
+   CurrentValue = 150,
+   Callback = function(v) AimSettings.FOV = v end,
 })
 
--- [[ หน้าที่ 3: คำสั่งแอดมิน (Admin) ]]
+CombatTab:CreateToggle({
+   Name = "แสดงวงกลม FOV",
+   CurrentValue = true,
+   Callback = function(v) AimSettings.ShowFOV = v end,
+})
+
+-- [[ หน้าเมนู: คำสั่งแอดมิน ]]
 local AdminTab = Window:CreateTab("คำสั่งแอดมิน", 4483362458)
 AdminTab:CreateButton({
-   Name = "เปิดใช้งาน Infinite Yield (Admin)",
-   Callback = function()
-      loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-   end,
+   Name = "เปิดใช้งาน Infinite Yield",
+   Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))() end,
 })
 
--- [[ หน้าที่ 4: ตัวละคร ]]
+-- [[ หน้าเมนู: ตัวละคร ]]
 local PlayerTab = Window:CreateTab("ตัวละคร", 4483362458)
 PlayerTab:CreateSlider({
    Name = "ความเร็ววิ่ง",
-   Range = {16, 500},
+   Range = {16, 300},
    Increment = 1,
    CurrentValue = 16,
    Callback = function(v) if LP.Character and LP.Character:FindFirstChild("Humanoid") then LP.Character.Humanoid.WalkSpeed = v end end,
