@@ -3,73 +3,60 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "ANUSORNGOD HUB | SUPREME V4",
    LoadingTitle = "กำลังเปิดระบบโดย AnusornGod...",
-   LoadingSubtitle = "เมนูภาษาไทยสำหรับสายเกรียน",
+   LoadingSubtitle = "ยินดีต้อนรับ AnusornGod",
    ConfigurationSaving = { Enabled = true, FolderName = "AnusornGodConfig" },
    KeySystem = true,
    KeySettings = {
       Title = "ระบบสมาชิก AnusornGod",
-      Subtitle = "รหัสคือ: 1234",
-      Note = "ใส่รหัสเพื่อใช้งาน",
+      Subtitle = "กรุณาใส่รหัสผ่านเพื่อใช้งาน",
+      -- ลบส่วน Note ออกเรียบร้อยแล้ว
       FileName = "AnusornKey",
-      SaveKey = false,
-      Key = {"1234"}
+      SaveKey = false, 
+      Key = {"112523"} 
    }
 })
 
--- [[ ฟังก์ชันโปรมอง (ESP) แบบเขียนเอง ]]
-local function CreateESP(Player)
-    local Box = Drawing.new("Square")
-    Box.Visible = false
-    Box.Color = Color3.fromRGB(255, 0, 0)
-    Box.Thickness = 2
-    Box.Transparency = 1
-    Box.Filled = false
+-- [[ แท็บที่ 1: ระบบล็อคเป้า ]]
+local CombatTab = Window:CreateTab("ระบบล็อคเป้า", 4483362458)
+local AimSettings = { Enabled = false, Mode = "คลิกขวา", Smoothness = 0.1, FOV = 150, TargetPart = "Head" }
 
-    game:GetService("RunService").RenderStepped:Connect(function()
-        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and _G.ESP_Enabled then
-            local RootPart = Player.Character.HumanoidRootPart
-            local Pos, OnScreen = workspace.CurrentCamera:WorldToViewportPoint(RootPart.Position)
-            if OnScreen then
-                local Size = (workspace.CurrentCamera:WorldToViewportPoint(RootPart.Position - Vector3.new(0, 3, 0)).Y - workspace.CurrentCamera:WorldToViewportPoint(RootPart.Position + Vector3.new(0, 2.6, 0)).Y)
-                Box.Size = Vector2.new(Size / 1.5, Size)
-                Box.Position = Vector2.new(Pos.X - Box.Size.X / 2, Pos.Y - Box.Size.Y / 2)
-                Box.Visible = true
-            else
-                Box.Visible = false
-            end
-        else
-            Box.Visible = false
-        end
-    end)
-end
+CombatTab:CreateToggle({
+   Name = "เปิดใช้งานระบบล็อคเป้า",
+   CurrentValue = false,
+   Callback = function(Value) AimSettings.Enabled = Value end,
+})
 
--- [[ หน้าเมนู: โปรมอง ]]
+CombatTab:CreateDropdown({
+   Name = "โหมดล็อค",
+   Options = {"คลิกขวา", "กดยิง"},
+   CurrentOption = "คลิกขวา",
+   Callback = function(Option) AimSettings.Mode = Option[1] end,
+})
+
+-- [[ แท็บที่ 2: โปรมอง & ออร่า ]]
 local TrollTab = Window:CreateTab("โปรมอง & ออร่า", 4483362458)
 
-TrollTab:CreateToggle({
-   Name = "เปิดโปรมอง (ESP Box)",
-   CurrentValue = false,
-   Callback = function(Value)
-      _G.ESP_Enabled = Value
-      if Value then
-          for _, p in pairs(game.Players:GetPlayers()) do
-              if p ~= game.Players.LocalPlayer then CreateESP(p) end
-          end
-      end
+TrollTab:CreateButton({
+   Name = "เปิดโปรมอง (ESP)",
+   Callback = function()
+      loadstring(game:HttpGet("https://raw.githubusercontent.com/ic3w0lf22/Unnamed-ESP/master/Main.lua"))()
    end,
 })
 
 TrollTab:CreateToggle({
    Name = "ออร่าฆ่า (Kill Aura)",
    CurrentValue = false,
-   Callback = function(v)
-      _G.Aura = v
+   Callback = function(Value)
+      _G.Aura = Value
       while _G.Aura do
          pcall(function()
-            for _, p in pairs(game.Players:GetPlayers()) do
-               if p ~= game.Players.LocalPlayer and (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude < 25 then
-                  local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-                  if tool then tool:Activate() end
+            for _, v in pairs(game.Players:GetPlayers()) do
+               if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                  local dist = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                  if dist < 25 then
+                     local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                     if tool then tool:Activate() end
+                  end
                end
             end
          end)
@@ -78,4 +65,17 @@ TrollTab:CreateToggle({
    end,
 })
 
--- (ส่วนของสปีดและล็อคเป้าให้คงไว้ตามเดิมครับ)
+-- [[ แท็บที่ 3: ตัวละคร ]]
+local PlayerTab = Window:CreateTab("ตัวละคร", 4483362458)
+
+PlayerTab:CreateSlider({
+   Name = "ความเร็ววิ่ง",
+   Range = {16, 500},
+   Increment = 1,
+   CurrentValue = 16,
+   Callback = function(v) 
+      if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+         game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v 
+      end
+   end,
+})
