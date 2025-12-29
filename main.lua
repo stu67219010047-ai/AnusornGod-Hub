@@ -18,7 +18,8 @@ local Window = Rayfield:CreateWindow({
 -- [[ ตั้งค่าระบบ ]]
 local AimSettings = {
     Enabled = false,
-    Smoothness = 0.2, -- ยิ่งน้อยยิ่งล็อคแรง (0.1 = แรง, 0.9 = เนียนมาก)
+    Mode = "คลิกขวา", -- ค่าเริ่มต้น
+    Smoothness = 0.1,
     FOV = 150,
     ShowFOV = true,
     TargetPart = "Head",
@@ -33,11 +34,10 @@ local Mouse = LP:GetMouse()
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Thickness = 1
 FOVCircle.Color = Color3.fromRGB(255, 255, 255)
-FOVCircle.Filled = false
 FOVCircle.Transparency = 0.5
 FOVCircle.Visible = false
 
--- [[ ฟังก์ชันหาศัตรูที่ใกล้ที่สุด ]]
+-- [[ ฟังก์ชันหาศัตรู ]]
 local function GetClosestPlayer()
     local Target = nil
     local ShortestDistance = AimSettings.FOV
@@ -45,7 +45,6 @@ local function GetClosestPlayer()
     for _, v in pairs(game.Players:GetPlayers()) do
         if v ~= LP and v.Character and v.Character:FindFirstChild(AimSettings.TargetPart) and v.Character:FindFirstChild("Humanoid") then
             if v.Character.Humanoid.Health > 0 then
-                -- เช็คทีม
                 local isTeammate = (v.Team ~= nil and v.Team == LP.Team) or (v.TeamColor == LP.TeamColor)
                 if not AimSettings.TeamCheck or not isTeammate then
                     local Pos, OnScreen = Camera:WorldToViewportPoint(v.Character[AimSettings.TargetPart].Position)
@@ -71,14 +70,17 @@ game:GetService("RunService").RenderStepped:Connect(function()
 
     if AimSettings.Enabled then
         local UIS = game:GetService("UserInputService")
-        if UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then -- ล็อคเมื่อคลิกขวา
+        local IsPressed = false
+        
+        if AimSettings.Mode == "คลิกขวา" then
+            IsPressed = UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
+        else
+            IsPressed = UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+        end
+        
+        if IsPressed then
             local Target = GetClosestPlayer()
             if Target then
-                local TargetPos = Camera:WorldToViewportPoint(Target.Position)
-                local MousePos = Vector2.new(Mouse.X, Mouse.Y + 36)
-                local LookAt = (Vector2.new(TargetPos.X, TargetPos.Y) - MousePos) * (1 - AimSettings.Smoothness)
-                
-                -- ล็อคแบบขยับกล้อง
                 Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, Target.Position), 1 - AimSettings.Smoothness)
             end
         end
@@ -94,32 +96,46 @@ CombatTab:CreateToggle({
    Callback = function(v) AimSettings.Enabled = v end,
 })
 
+CombatTab:CreateDropdown({
+   Name = "เลือกปุ่มล็อคเป้า",
+   Options = {"คลิกซ้าย", "คลิกขวา"},
+   CurrentOption = "คลิกขวา",
+   Callback = function(Option)
+      AimSettings.Mode = Option[1]
+   end,
+})
+
 CombatTab:CreateSlider({
-   Name = "ความเนียน (น้อย = ล็อคแรง)",
-   Range = {0.01, 0.9},
-   Increment = 0.01,
-   CurrentValue = 0.2,
+   Name = "ความเนียน (0 = แรงมาก)",
+   Range = {0, 0.9},
+   Increment = 0.05,
+   CurrentValue = 0.1,
    Callback = function(v) AimSettings.Smoothness = v end,
 })
 
 CombatTab:CreateSlider({
    Name = "ระยะล็อค (FOV)",
-   Range = {0, 800},
+   Range = {0, 1000},
    Increment = 10,
    CurrentValue = 150,
    Callback = function(v) AimSettings.FOV = v end,
 })
 
-CombatTab:CreateToggle({
-   Name = "แสดงวงกลม FOV",
-   CurrentValue = true,
-   Callback = function(v) AimSettings.ShowFOV = v end,
+-- [[ หน้าเมนู: โปรมอง (แก้ใหม่) ]]
+local VisualTab = Window:CreateTab("โปรมอง", 4483362458)
+
+VisualTab:CreateButton({
+   Name = "เปิดใช้งานโปรมอง (ESP Boxes)",
+   Callback = function()
+      -- ใช้สคริปต์ ESP ตัวที่เสถียรสำหรับ Solara
+      loadstring(game:HttpGet("https://raw.githubusercontent.com/Babyhamsta/RBLX_Scripts/main/Universal/SimpleESP.lua"))()
+   end,
 })
 
 -- [[ หน้าเมนู: คำสั่งแอดมิน ]]
 local AdminTab = Window:CreateTab("คำสั่งแอดมิน", 4483362458)
 AdminTab:CreateButton({
-   Name = "เปิดใช้งาน Infinite Yield",
+   Name = "เปิด Infinite Yield",
    Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))() end,
 })
 
