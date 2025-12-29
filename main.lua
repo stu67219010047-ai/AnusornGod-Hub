@@ -1,9 +1,9 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "ANUSORNGOD HUB | SUPREME V4",
+   Name = "ANUSORNGOD HUB | SUPREME V4 PRO",
    LoadingTitle = "กำลังเปิดระบบโดย AnusornGod...",
-   LoadingSubtitle = "ยินดีต้อนรับ AnusornGod",
+   LoadingSubtitle = "ยินดีต้อนรับ AnusornGod | Visual Update",
    ConfigurationSaving = { Enabled = true, FolderName = "AnusornGodConfig" },
    KeySystem = true,
    KeySettings = {
@@ -15,10 +15,10 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
--- [[ ตั้งค่าระบบ ]]
+-- [[ ระบบการตั้งค่า ]]
 local AimSettings = {
     Enabled = false,
-    Mode = "คลิกขวา", -- ค่าเริ่มต้น
+    Mode = "คลิกขวา",
     Smoothness = 0.1,
     FOV = 150,
     ShowFOV = true,
@@ -62,7 +62,7 @@ local function GetClosestPlayer()
     return Target
 end
 
--- [[ ระบบล็อคเป้าทำงาน ]]
+-- [[ วนลูปการทำงาน ]]
 game:GetService("RunService").RenderStepped:Connect(function()
     FOVCircle.Visible = AimSettings.ShowFOV
     FOVCircle.Radius = AimSettings.FOV
@@ -70,13 +70,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
 
     if AimSettings.Enabled then
         local UIS = game:GetService("UserInputService")
-        local IsPressed = false
-        
-        if AimSettings.Mode == "คลิกขวา" then
-            IsPressed = UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
-        else
-            IsPressed = UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
-        end
+        local IsPressed = (AimSettings.Mode == "คลิกขวา" and UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)) or (AimSettings.Mode == "คลิกซ้าย" and UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1))
         
         if IsPressed then
             local Target = GetClosestPlayer()
@@ -87,7 +81,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
     end
 end)
 
--- [[ หน้าเมนู: ระบบต่อสู้ ]]
+-- [[ 1. แท็บระบบต่อสู้ ]]
 local CombatTab = Window:CreateTab("ระบบต่อสู้", 4483362458)
 
 CombatTab:CreateToggle({
@@ -100,14 +94,12 @@ CombatTab:CreateDropdown({
    Name = "เลือกปุ่มล็อคเป้า",
    Options = {"คลิกซ้าย", "คลิกขวา"},
    CurrentOption = "คลิกขวา",
-   Callback = function(Option)
-      AimSettings.Mode = Option[1]
-   end,
+   Callback = function(Option) AimSettings.Mode = Option[1] end,
 })
 
 CombatTab:CreateSlider({
-   Name = "ความเนียน (0 = แรงมาก)",
-   Range = {0, 0.9},
+   Name = "ความแรงการล็อค (0 = แรงที่สุด)",
+   Range = {0, 0.95},
    Increment = 0.05,
    CurrentValue = 0.1,
    Callback = function(v) AimSettings.Smoothness = v end,
@@ -121,25 +113,49 @@ CombatTab:CreateSlider({
    Callback = function(v) AimSettings.FOV = v end,
 })
 
--- [[ หน้าเมนู: โปรมอง (แก้ใหม่) ]]
-local VisualTab = Window:CreateTab("โปรมอง", 4483362458)
+-- [[ 2. แท็บโปรมอง (Premium Visuals) ]]
+local VisualTab = Window:CreateTab("โปรมอง (Visuals)", 4483362458)
+
+VisualTab:CreateSection("— ฟังชั่น ESP —")
 
 VisualTab:CreateButton({
-   Name = "เปิดใช้งานโปรมอง (ESP Boxes)",
+   Name = "เปิดเมนูโปรมอง (UI สวย)",
    Callback = function()
-      -- ใช้สคริปต์ ESP ตัวที่เสถียรสำหรับ Solara
-      loadstring(game:HttpGet("https://raw.githubusercontent.com/Babyhamsta/RBLX_Scripts/main/Universal/SimpleESP.lua"))()
+      -- Unnamed ESP (หนึ่งใน ESP ที่ดีที่สุดและฟังก์ชันเยอะที่สุด)
+      loadstring(game:HttpGet("https://raw.githubusercontent.com/ic3w0lf22/Unnamed-ESP/master/Main.lua"))()
    end,
 })
 
--- [[ หน้าเมนู: คำสั่งแอดมิน ]]
+VisualTab:CreateSection("— ฟังชั่นเสริม —")
+
+VisualTab:CreateButton({
+   Name = "ส่องทะลุกำแพง (Highlight)",
+   Callback = function()
+       local function ApplyHighlight(v)
+           if v:IsA("Player") and v ~= LP then
+               v.CharacterAdded:Connect(function(char)
+                   local h = Instance.new("Highlight", char)
+                   h.FillColor = Color3.fromRGB(255, 0, 0)
+               end)
+               if v.Character then
+                   local h = Instance.new("Highlight", v.Character)
+                   h.FillColor = Color3.fromRGB(255, 0, 0)
+               end
+           end
+       end
+       for _, v in pairs(game.Players:GetPlayers()) do ApplyHighlight(v) end
+       game.Players.PlayerAdded:Connect(ApplyHighlight)
+   end,
+})
+
+-- [[ 3. แท็บคำสั่งแอดมิน ]]
 local AdminTab = Window:CreateTab("คำสั่งแอดมิน", 4483362458)
 AdminTab:CreateButton({
    Name = "เปิด Infinite Yield",
    Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))() end,
 })
 
--- [[ หน้าเมนู: ตัวละคร ]]
+-- [[ 4. แท็บตัวละคร ]]
 local PlayerTab = Window:CreateTab("ตัวละคร", 4483362458)
 PlayerTab:CreateSlider({
    Name = "ความเร็ววิ่ง",
